@@ -5,12 +5,31 @@ import {
   decrement,
   increment,
   incrementByAmt,
+  userAccFulfilled,
+  userAccPending,
 } from "../redux/action/accountAction";
+import axios from "axios";
 
 const Account = () => {
   const [value, setValue] = useState(0);
   const dispatch = useDispatch();
   const amount = useSelector((state) => state.account.amount);
+  const account = useSelector((state) => state.account);
+
+  const getUser = (value) => {
+    // eslint-disable-next-line no-unused-vars
+    return async (dispatch, getState) => {
+      dispatch(userAccPending());
+      try {
+        const response = await axios.get(
+          `http://localhost:8000/accounts/${value}`
+        );
+        dispatch(userAccFulfilled(response.data.amount));
+      } catch (error) {
+        dispatch(userAccPending(error));
+      }
+    };
+  };
 
   return (
     <div
@@ -22,6 +41,7 @@ const Account = () => {
         alignItems: "center",
       }}
     >
+      {account.pending ? <h1>Loading......</h1> : null}
       <p style={{ marginRight: "16px" }}>Amount : $ {amount}</p>
       <input
         type="text"
@@ -39,6 +59,10 @@ const Account = () => {
         style={{ margin: "8px" }}
       >
         IncrementByAmount
+      </button>
+
+      <button onClick={() => dispatch(getUser(1))} style={{ margin: "8px" }}>
+        Get User
       </button>
     </div>
   );
